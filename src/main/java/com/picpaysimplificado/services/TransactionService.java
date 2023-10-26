@@ -6,14 +6,9 @@ import com.picpaysimplificado.repositories.TransactionalRepository;
 import com.picpaysimplificado.transaction.Transactional;
 import lombok.extern.log4j.Log4j2;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.http.HttpStatus;
-import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
-import org.springframework.web.client.RestTemplate;
 
-import java.math.BigDecimal;
 import java.time.LocalDateTime;
-import java.util.Map;
 
 @Log4j2
 @Service
@@ -26,10 +21,10 @@ public class TransactionService {
     TransactionalRepository repository;
 
     @Autowired
-    private EmailNotificationService emailNotificationService;
+    AuthorizationService authorizationservice;
 
     @Autowired
-    RestTemplate restTemplate;
+    private EmailNotificationService emailNotificationService;
 
     public Transactional createTransaction(TransactionDTO transactionDTO) throws Exception {
 
@@ -38,7 +33,7 @@ public class TransactionService {
 
         userService.validateTransaction(sender, transactionDTO.value());
 
-//        boolean isAuthorizated = this.authorizeTransaction(sender, transactionDTO.value());
+//        boolean isAuthorizated = authorizationservice.authorizeTransaction(sender, transactionDTO.value());
 //        if(!isAuthorizated){
 //            throw new Exception("Not authorizated");
 //        }
@@ -62,14 +57,4 @@ public class TransactionService {
         return newTransactional;
     }
 
-    public boolean authorizeTransaction(User sender, BigDecimal value){
-
-        ResponseEntity<Map> authorizationResponse = restTemplate.getForEntity("https://run.mocky.io/v3/8fafdd68-a090-496f-8c9a-3442cf30dae6", Map.class);
-
-        if(authorizationResponse.getStatusCode() == HttpStatus.OK){
-            String message = (String) authorizationResponse.getBody().get("message");
-            return "Autorizado".equalsIgnoreCase(message);
-        } else
-            return false;
-    }
 }
